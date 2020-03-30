@@ -9,10 +9,14 @@
 # I run this from crontab daily during a time I think the system will be
 # least busy, such as 3am.
 #
-# NOTE: One of the side effects of removing a file is that you update the
-# parent directory entry with the current date/time.
-# That means an empty directory may remain until it ages then out.
-# I left this script with that shortcoming to make it easier to maintain.
+# It is expected this will be run as the root user.
+# I do this because I am not sure what process may be writing to these
+# directories and I am too laz...um I mean efficient to feel the need
+# to go research each one to coordinate group permissions and all the
+# fun that goes with that. ;-)
+#
+# At the end, I specifically relax the permissions recursively so that
+# any process that wants to write to the directories can do so.
 
 
 ######################################################
@@ -26,6 +30,24 @@ BASE_PATH=/data/spool/
 # Add/Remove any that you think may be useful
 CLEANUP_LIST=( 01 02 05 07 10 14 20 30 )
 
+# This is dangerous but I am going to put my log into a directory that
+# I also perform housekeeping on.
+LOG=${BASE_PATH}30/cleanup_$(date '+%Y-%m-%d').log
+
+# These are the user and group that my web server is running as.
+USER=www-data
+GROUP=www-data
+
+# $1 is the first string passed to us.
+# -e allows us to add formatting tags like \t for tab to make the log more readable
+function LogIt()
+{
+    echo -e "$(date '+%Y-%m-%d %H:%M:%S') $1" >> $LOG;
+}
+
+LogIt "\t**** Starting the file cleanup process ****"
+LogIt "Processing directories under: ${BASE_PATH}"
+
 for dir in "${CLEANUP_LIST[@]}"
 do
     # We prepend the base directory to the target directory
@@ -34,41 +56,46 @@ do
     # Check for directory existence
     if [ -d ${CHECK_DIR} ]
     then
-        echo "${CHECK_DIR} exists, processing files older than ${dir} days"
 
         # Make a list of all files under the target directory that
         # need to be removed
         PURGE_FILE_LIST=`find ${CHECK_DIR} -type f -mtime +${dir}`
 
         # Make a list of all directories under the target directory
-        # that need to be removed
+        # that need to be removed.
+        # By creating this list BEFORE we remove any files, we have an
+        # accurate list of aged directories since the parent directory
+        # gets it mtime (modify time) updated when a file is removed,
+        # we have to make this list early one.
         PURGE_DIRECTORY_LIST=`find ${CHECK_DIR} -type d -mtime +${dir}`
 
         # Process each file individually. We do this so we can create
         # exceptions.
         for file in ${PURGE_FILE_LIST}
         do
-            echo "Purging file: ${file}"
+            LogIt "\tPurging file: ${file}"
             rm ${file}
         done
 
-        echo "Processing directories older than ${dir} days"
+        LogIt "Processing directories older than ${dir} days"
         # Process each directory individually. We do this so we can create
         # exceptions.
         for directory in ${PURGE_DIRECTORY_LIST}
         do
-            echo "Purging ${directory}"
+            LogIt "\tPurging directory: ${directory}"
             # We use rmdir because it will only remove empty directories
             rmdir ${directory}
         done
     else
-        echo "${CHECK_DIR} does not exist, creating now"
+        LogIt "NOTE: ${CHECK_DIR} does not exist, creating now"
         if mkdir -p ${CHECK_DIR}
         then
-            echo "Successfully created ${CHECK_DIR}"
+            LogIt "\tSuccessfully created ${CHECK_DIR}"
         fi
     fi
-
 done
 
+# Recursively set permissions on all files and all directories
+LogIt "Setting permissions on all files and directories under: ${BASE_PATH}"
+chown -R ${USER}:${GROUP} ${BASE_PATH}
 
