@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+######################################################
+# File and directory cleanup tool
+######################################################
+#
+# The number of the directory name in $CLEANUP_LIST designates how long a
+# file or subdirectory will be left in the directory before being removed.
+# I run this from crontab daily during a time I think the system will be
+# least busy, such as 3am.
+#
+# NOTE: One of the side effects of removing a file is that you update the
+# parent directory entry with the current date/time.
+# That means an empty directory may remain until it ages then out.
+# I left this script with that shortcoming to make it easier to maintain.
+
+
+######################################################
+# Starting directory. This should already exist
+# /data/spool/ is so boring, feel free to make it something more creative!
+BASE_PATH=/data/spool/
+
+# List of directories under $BASE_PATH
+# These will be created if they do not exist
+# The directory names were chosen because they might be useful someday
+# Add/Remove any that you think may be useful
+CLEANUP_LIST=( 01 02 05 07 10 14 20 30 )
+
+for dir in "${CLEANUP_LIST[@]}"
+do
+    # We prepend the base directory to the target directory
+    CHECK_DIR=${BASE_PATH}${dir}
+
+    # Check for directory existence
+    if [ -d ${CHECK_DIR} ]
+    then
+        echo "${CHECK_DIR} exists, processing files older than ${dir} days"
+
+        # Make a list of all files under the target directory that
+        # need to be removed
+        PURGE_FILE_LIST=`find ${CHECK_DIR} -type f -mtime +${dir}`
+
+        # Make a list of all directories under the target directory
+        # that need to be removed
+        PURGE_DIRECTORY_LIST=`find ${CHECK_DIR} -type d -mtime +${dir}`
+
+        # Process each file individually. We do this so we can create
+        # exceptions.
+        for file in ${PURGE_FILE_LIST}
+        do
+            echo "Purging file: ${file}"
+            rm ${file}
+        done
+
+        echo "Processing directories older than ${dir} days"
+        # Process each directory individually. We do this so we can create
+        # exceptions.
+        for directory in ${PURGE_DIRECTORY_LIST}
+        do
+            echo "Purging ${directory}"
+            # We use rmdir because it will only remove empty directories
+            rmdir ${directory}
+        done
+    else
+        echo "${CHECK_DIR} does not exist, creating now"
+        if mkdir -p ${CHECK_DIR}
+        then
+            echo "Successfully created ${CHECK_DIR}"
+        fi
+    fi
+
+done
+
+
