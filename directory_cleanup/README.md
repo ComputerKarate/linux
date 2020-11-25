@@ -2,7 +2,8 @@
 #### Automatic directory cleaner
 
 ---
-A place where you can place files or directories and housekeeping will automatically remove them  
+What if you had several directories to choose from for files that you may want to save for a few days?  
+Just select a directory from the stock ones, /data/spool/{01|05|07|10|14|20|30} or add a new one  
 By default the cleanup service runs at 3am daily.  
 
 ---
@@ -13,7 +14,7 @@ In this manner, I don't have to monitor the progress of the download to cleanup 
 If you decide to change the location, modify the line in system-cleanup.service that starts with "ExecStart" to the path where you located cleanup:  
 ExecStart=/data/spool/bin/cleanup  
   
-If you want it to run at some time other than 3am, modify the line in system-cleanup.timer that starts with "OnCalendar": 
+If you want it to run at some time other than 3am, modify the line in system-cleanup.timer that starts with "OnCalendar":  
 OnCalendar=*-*-* 03:00:00  
 
 ---
