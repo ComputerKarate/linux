@@ -1,0 +1,38 @@
+######################################################
+# File and directory cleanup tool
+######################################################
+#
+# By default we recursively process files under /data/spool/$CLEANUP_LIST
+#
+# NOTE: This section is referring to the actual script "cleanup" that processes
+# the files and directories.
+#
+# The number of the directory name in $CLEANUP_LIST designates how long a
+# file or subdirectory will be left in the directory before being removed.
+# I run this from crontab daily during a time I think the system will be
+# least busy, such as 3am.
+# CLEANUP_LIST=( 01 02 05 07 10 14 20 30 )
+#
+# It is expected this will be run as the root user.
+# I do this because I am not sure what process may be writing to these
+# directories and I am too laz...um I mean efficient to feel the need
+# to go research each one to coordinate group permissions and all the
+# fun that goes with that. ;-)
+#
+# At the end, I specifically relax the permissions recursively so that
+# any process that wants to write to the directories can do so.
+# Therefore be careful about files that you may not want others to see.
+
+[Unit]
+Description=Temporary file housekeeping
+After=multi-user.target
+ 
+[Service]
+Type=simple
+ExecStart=/data/spool/bin/cleanup
+ExecStop=
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
+
