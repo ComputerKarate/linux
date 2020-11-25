@@ -4,14 +4,20 @@
 ---
 What if you had several directories to choose from for files that you may want to save for a few days?  
 Just select a directory from the stock ones, /data/spool/{01|05|07|10|14|20|30} or add a new one  
-By default the cleanup service runs at 3am daily.  
+Adding a new directory is as easy as editing the line in "cleanup" that contains:  
+CLEANUP_LIST=( 01 02 05 07 10 14 20 30 )
+Just add a new entry  
+The new entry must be an integer
+If you remove an entry, you will need to manually remove the directory  
+
+By default the cleanup service runs at 3am daily  
 
 ---
-An example includes creating a report for a user to download.  
-I can drop the report into /data/spool/01/report.csv and let the user download it.  
-In this manner, I don't have to monitor the progress of the download to cleanup the file.  
-  
-If you decide to change the location, modify the line in system-cleanup.service that starts with "ExecStart" to the path where you located cleanup:  
+This functionality is in two parts  
+There is a systemd service that calls a script  
+By default the systemd service runs at 3am and it expects the script "cleanup" to be in "/data/spool/bin"  
+
+If you decide to change the location of the script that performs the housekeeping, modify the line in system-cleanup.service that starts with "ExecStart" to the path where you located the file "cleanup":  
 ExecStart=/data/spool/bin/cleanup  
   
 If you want it to run at some time other than 3am, modify the line in system-cleanup.timer that starts with "OnCalendar":  
@@ -19,10 +25,16 @@ OnCalendar=*-*-* 03:00:00
 
 ---
 #### Installation
-I installed the executable script in "/data/spool/bin/cleanup"  
-That is the default location in the systemd service.  
+##### Install the cleanup script
+It is necessary to create a basic directory structure to begin with  
+Run these commands to create that:  
+sudo mkdir -p /data/spool/bin
+sudo mkdir -p /data/spool/30
 
-To install the systemd service, copy the two files with the prefix "system-cleanup" to wherever your system puts service files  
+Now manually copy the file "cleanup" to /data/spool/bin  
+
+##### Install the systemd service
+To install the systemd service, copy the two files from the repo with the prefix "system-cleanup" to wherever your system puts service files  
 /lib/systemd/system/system-cleanup.service  
 /lib/systemd/system/system-cleanup.timer  
   
@@ -34,12 +46,13 @@ This will put it on the scheduler
 ComputerKarate@racer-tower:/lib/systemd/system$ sudo systemctl enable system-cleanup.timer  
 Created symlink /etc/systemd/system/timers.target.wants/system-cleanup.timer → /lib/systemd/system/system-cleanup.timer.  
 
-### To start the system-cleanup service, run these commands:
-ComputerKarate@racer-tower:/lib/systemd/system$ sudo systemctl start system-cleanup.service  
-It will run immediately.  
+#### Starting the system-cleanup service:
+Run the following command:  
+sudo systemctl start system-cleanup.service  
 
-To verify, check the service status:  
-ComputerKarate@racer-tower:/lib/systemd/system$ sudo systemctl status system-cleanup.service  
+To verify, check the service status with this command:  
+sudo systemctl status system-cleanup.service  
+
 ● system-cleanup.service - Temporary file housekeeping  
      Loaded: loaded (/lib/systemd/system/system-cleanup.service; enabled; vendor preset: enabled)  
      Active: inactive (dead) since Tue 2020-11-24 19:18:12 CST; 1min 8s ago  
