@@ -29,7 +29,7 @@ After=multi-user.target
  
 [Service]
 Type=simple
-ExecStart=/data/spool/bin/cleanup
+ExecStart=/data/bin/cleanup
 ExecStop=
 RemainAfterExit=no
 

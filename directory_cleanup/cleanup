@@ -38,6 +38,9 @@ LOG=${BASE_PATH}30/cleanup_$(date '+%Y-%m-%d').log
 USER=www-data
 GROUP=www-data
 
+# Change IFS to process entries with spaces
+IFS=$(echo -en "\n\b")
+
 # $1 is the first string passed to us.
 # -e allows us to add formatting tags like \t for tab to make the log more readable
 function LogIt()
@@ -82,9 +85,12 @@ do
         # exceptions.
         for directory in ${PURGE_DIRECTORY_LIST}
         do
-            LogIt "\tPurging directory: ${directory}"
-            # We use rmdir because it will only remove empty directories
-            rmdir ${directory}
+            if [ ${CHECK_DIR} != ${directory} ]
+            then
+                LogIt "\tPurging directory: ${directory}"
+                # We use rmdir because it will only remove empty directories
+                rmdir ${directory}
+            fi
         done
     else
         LogIt "NOTE: ${CHECK_DIR} does not exist, creating now"
@@ -97,5 +103,5 @@ done
 
 # Recursively set permissions on all files and all directories
 LogIt "Setting permissions on all files and directories under: ${BASE_PATH}"
-chown -R ${USER}:${GROUP} ${BASE_PATH}
+chmod -R 777 ${BASE_PATH}
 
