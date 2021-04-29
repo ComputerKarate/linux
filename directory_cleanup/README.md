@@ -2,8 +2,8 @@
 #### Automatic directory cleaner
 
 ---
-What if you have a habit of forgetting to go back and perform the housekeeping after a few days to remove the files?  
 What if you had several directories to choose from for files that you may want to save for only a few days and then make them disappear?  
+What if you have a habit of forgetting to go back and perform the housekeeping after a few days to remove the files?  
 Just save your file to a directory from the stock ones, /data/spool/{01|05|07|10|14|20|30} or add a new one and your files will just disappear  
   
 Adding a new directory is as easy as editing the line in "cleanup" that contains:  
