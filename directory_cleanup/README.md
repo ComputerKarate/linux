@@ -2,8 +2,10 @@
 #### Automatic directory cleaner
 
 ---
-What if you had several directories to choose from for files that you may want to save for a few days?  
-Just select a directory from the stock ones, /data/spool/{01|05|07|10|14|20|30} or add a new one  
+What if you have a habit of forgetting to go back and perform the housekeeping after a few days to remove the files?  
+What if you had several directories to choose from for files that you may want to save for only a few days and then make them disappear?  
+Just save your file to a directory from the stock ones, /data/spool/{01|05|07|10|14|20|30} or add a new one and your files will just disappear  
+  
 Adding a new directory is as easy as editing the line in "cleanup" that contains:  
 CLEANUP_LIST=( 01 02 05 07 10 14 20 30 )
 Just add a new entry  
@@ -11,14 +13,18 @@ The new entry must be an integer
 If you remove an entry, you will need to manually remove the directory  
 
 By default the cleanup service runs at 3am daily  
-
+  
+NOTE: The files/directories under /data/spool will have permissions enirely relaxed so that ANYONE can read/write ANY file  
+This process is specifically for mundane logs and files that have no personal or sensitive data  
+Except my personal Linux system, only admins login to my Linux servers so it is in a trusted/closed environment  
+  
 ---
 This functionality is in two parts  
 There is a systemd service that calls a script  
-By default the systemd service runs at 3am and it expects the script "cleanup" to be in "/data/spool/bin"  
+By default the systemd service runs at 3am and it expects the script "cleanup" to be in "/usr/local/bin"  
 
 If you decide to change the location of the script that performs the housekeeping, modify the line in system-cleanup.service that starts with "ExecStart" to the path where you located the file "cleanup":  
-ExecStart=/data/spool/bin/cleanup  
+ExecStart=/usr/local/bin/cleanup  
   
 If you want it to run at some time other than 3am, modify the line in system-cleanup.timer that starts with "OnCalendar":  
 OnCalendar=*-*-* 03:00:00  
@@ -28,11 +34,11 @@ OnCalendar=*-*-* 03:00:00
 ##### Install the cleanup script
 It is necessary to create a basic directory structure to begin with  
 Run these commands to create that:  
-sudo mkdir -p /data/spool/bin
-sudo mkdir -p /data/spool/30
-
-Now manually copy the file "cleanup" to /data/spool/bin  
-
+sudo mkdir -p /data/spool/30 
+sudo chmod -R 777 /data/spool
+  
+Now manually copy the file "cleanup" to /usr/local/bin/
+   
 ##### Install the systemd service
 To install the systemd service, copy the two files from the repo with the prefix "system-cleanup" to wherever your system puts service files  
 /lib/systemd/system/system-cleanup.service  

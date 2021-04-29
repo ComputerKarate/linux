@@ -34,10 +34,6 @@ CLEANUP_LIST=( 01 02 05 07 10 14 20 30 )
 # I also perform housekeeping on.
 LOG=${BASE_PATH}30/cleanup_$(date '+%Y-%m-%d').log
 
-# These are the user and group that my web server is running as.
-USER=www-data
-GROUP=www-data
-
 # Change IFS to process entries with spaces
 IFS=$(echo -en "\n\b")
 
