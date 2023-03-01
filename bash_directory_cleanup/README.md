@@ -23,7 +23,7 @@ This functionality is in two parts
 There is a systemd service that calls a script  
 By default the systemd service runs at 3am and it expects the script "cleanup" to be in "/usr/local/bin"  
 
-If you decide to change the location of the script that performs the housekeeping, modify the line in system-cleanup.service that starts with "ExecStart" to the path where you located the file "cleanup":  
+If you decide to change the location of the script that performs the housekeeping, modify the line in system-cleanup.service that starts with "ExecStart" to the new location:  
 ExecStart=/usr/local/bin/cleanup  
   
 If you want it to run at some time other than 3am, modify the line in system-cleanup.timer that starts with "OnCalendar":  

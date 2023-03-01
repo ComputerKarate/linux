@@ -1,0 +1,23 @@
+#############################################
+# Directory - Indicates the top level to clean
+#             This program is recursive so all subdirectories
+#             are subject to cleaning
+#             Unless a file pattern is specified all files and
+#             subdirectories under the top level will be cleared
+# Age - Number of days before purging file or directory
+# File pattern - Specifying a file pattern will limit which
+#                files are purged.
+#                No directories will be purged if a pattern
+#                is specified.
+#
+# Required  |Required  |Optional
+#<directory>|<num days>|<file pattern>
+# Python is fine with either C:/data/spool/30 or C:\\data\\spool\\30 on Windows
+/data/spool/01|1|
+/data/spool/02|2|
+/data/spool/05|5|
+/data/spool/07|7|
+/data/spool/10|10|
+/data/spool/14|14|
+/data/spool/20|20|
+/data/spool/30|30|
