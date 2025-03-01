@@ -12,7 +12,10 @@
 #
 # Required  |Required  |Optional
 #<directory>|<num days>|<file pattern>
-# Python is fine with either C:/data/spool/30 or C:\\data\\spool\\30 on Windows
+#
+# Windows:
+# Python is fine with either delimiter for folders C:/data/spool/30 or C:\\data\\spool\\30
+#
 /data/spool/01|1|
 /data/spool/02|2|
 /data/spool/05|5|
