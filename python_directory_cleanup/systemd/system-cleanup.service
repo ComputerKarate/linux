@@ -1,0 +1,24 @@
+######################################################
+# File and directory cleanup tool
+######################################################
+##### Python version  ################################
+######################################################
+#
+# It is expected this will be run as a service
+#
+# See system-cleanup.timer for the schedule
+
+[Unit]
+Description=Housekeeping for temporary files
+After=multi-user.target
+ 
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/bin
+ExecStart=python3 /usr/local/bin/DirectoryCleanup.py
+ExecStop=
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
+

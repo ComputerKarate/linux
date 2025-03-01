@@ -6,6 +6,11 @@ import glob
 from configparser import ConfigParser
 
 VERSION = 'DirectoryCleanup\nVersion: 1.0.0'
+
+#############################################
+# TODO: Wrap print statements with a logging check
+
+
 #############################################
 # 3 files are required to operate:
 #
@@ -21,7 +26,6 @@ CleanupConfigFile = 'DirectoryCleanup.cfg'
 config = ConfigParser()
 config.read(CleanupConfigFile)
 
-
 #############################################
 # The application reads a data file to
 # retrieve a list of directories and file types
@@ -32,14 +36,16 @@ config.read(CleanupConfigFile)
 # <root folder>:<num days>:<file pattern>
 #
 #############################################
-DataValuesFile = "DirectoryCleanup.data"
+# This assumes file location is current directory
+#DataValuesFile = "DirectoryCleanup.data"
+DataValuesFile = ""
 
 
 #############################################
 # Begin processing variables
 #############################################
 # A new logfile will be created every day
-loggingDirectory = config['DEFAULT']['LogDirectory']
+loggingDirectory = ""
 formattedDate = datetime.datetime.now().strftime("%Y-%m-%d")
 
 # Top level directories from data file
@@ -51,24 +57,74 @@ fileList = []
 # List of directories to check
 dirList = []
 
+# Establish logging level
+VERBOSELOGGING = False
+
+# Print as well as log?
+PRINT_OUTPUT = False
+
+
+#############################################
+##### Establish values for required configuration
+#############################################
+def initializeConfigurationValues():
+    global VERBOSELOGGING
+    global DEBUG
+    global DataValuesFile 
+
+    print("Reading values from %s" % CleanupConfigFile)
+
+    if config['DEFAULT']['VerboseLoggingTriggerFilename']:
+        # Config value exists
+        print("Trigger filename: %s" % config['DEFAULT']['VerboseLoggingTriggerFilename'])
+        print("verboseLogging is currently %s" % VERBOSELOGGING)
+
+        # Check for file existence
+        if os.path.isfile(config['DEFAULT']['VerboseLoggingTriggerFilename']):
+            print("***** %s exists. Turning on verbose logging" % config['DEFAULT']['VerboseLoggingTriggerFilename'])
+            print("***** Delete %s to disable verbose logging" % config['DEFAULT']['VerboseLoggingTriggerFilename'])
+            VERBOSELOGGING = True
+
+    if config['DEFAULT']['PRINT_OUTPUT']:
+        PRINT_OUTPUT = True
+        print("All output will be printed as well as logged")
+
+    if config['DEFAULT']['DataValuesFile']:
+        DataValuesFile = config['DEFAULT']['DataValuesFile']
+        print("The config has %s as the filename with the directories to process" % DataValuesFile)
+        if os.path.isfile(DataValuesFile):
+            print("%s exists. Processing will continue..." % DataValuesFile)
+        else:
+            print("ERROR: %s not found. Processing will stop" % DataValuesFile)
+            quit()
+
+
 #############################################
 ##### Setup logging environment
 #############################################
 def initializeLogging(APP_NAME):
+    global loggingDirectory
+    if config['DEFAULT']['LogDirectory']:
+        loggingDirectory = config['DEFAULT']['LogDirectory']
+    else:
+        print("ERROR: Config value missing for LogDirectory in %s" % CleanupConfigFile)
+        loggingDirectory = '/tmp'
+        print("ERROR: Setting Logging directory to %s" % loggingDirectory)
+
     # Explicitly control the '/' or '\' appended to the path
     logFileName = loggingDirectory.rstrip('/').rstrip('\\') + '/' + APP_NAME + '_' + formattedDate + '.log'
 
     if not os.path.exists(loggingDirectory):
-        logit(loggingDirectory + " not found creating now")
+        print(loggingDirectory + " not found creating now")
         try:
             os.makedirs(loggingDirectory)
         except OSError:
-            logit("\tERROR: Attempting to create directory: %s" % (loggingDirectory))
+            print("\tERROR: Failed to create directory: %s" % (loggingDirectory))
 
     # The logging module will setup several important defaults
     log.basicConfig(
         filename=logFileName,
-        level='DEBUG',
+        level='INFO',
         format='%(asctime)s %(message)s',
         datefmt='%m/%d/%Y %H:%M:%S'
     )
@@ -77,12 +133,11 @@ def initializeLogging(APP_NAME):
     logit("%s Logging initialized" % (APP_NAME))
     logit("")
 
-
 #############################################
 ##### Log the message
 #############################################
 def logit(message):
-    if config.getboolean("DEFAULT", "DEBUG"):
+    if PRINT_OUTPUT:
         print(message)
     log.info(message)
 
@@ -111,6 +166,7 @@ def ReadCleanupList():
 
 #############################################
 ##### Process list of candidates
+#############################################
 def ProcessCleanupList():
     global fileList
     global dirList
@@ -189,15 +245,19 @@ def startProcessing(record):
     if not os.path.isdir(record[0]):
         logit("ERROR: %s does not exist. Do you need to create it?" % (record[0]))
 
+    logit("\t\tDEBUG: record[0]: %s, threshold_date: %s, record[2]: %s" % (record[0], threshold_date, record[2]))
     # If no file pattern was specified recursively grab them all
     if record[2] == '':
         searchDirectoryPattern = record[0] + '/**/*'
     else:
         searchDirectoryPattern = record[0] + '/' + record[2]
 
+    logit("\t\tDEBUG: searchDirectoryPattern: %s" % (searchDirectoryPattern))
+    # Python 3.5+ rawlist = glob.glob(searchDirectoryPattern, recursive=True, include_hidden=True)
     rawlist = glob.glob(searchDirectoryPattern, recursive=True)
 
     for entry in rawlist:
+        logit("\t\tDEBUG: Processing entry: %s" % entry)
         file_timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(entry))
         if threshold_date > file_timestamp:
             logit("\t\tProcessing: %s" % entry)
@@ -211,6 +271,7 @@ def startProcessing(record):
 #############################################
 ##### Processing begins here
 #############################################
+initializeConfigurationValues()
 initializeLogging("DiskCleanup")
 ReadCleanupList()
 ProcessCleanupList()
