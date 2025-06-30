@@ -15,7 +15,7 @@ After=multi-user.target
 [Service]
 Type=simple
 WorkingDirectory=/usr/local/bin
-ExecStart=python3 /usr/local/bin/DirectoryCleanup.py
+ExecStart=python3 /usr/local/bin/directory_cleanup.py
 ExecStop=
 RemainAfterExit=no
 
