@@ -5,10 +5,9 @@
 - [Execution](#change-default-values)
 
 ## Description
-I was helping someone create a card game  
+I was helping someone create a card game and they were struggling with creating image files to upload to [The Game Crafter](https://www.thegamecrafter.com)  
 They wanted to hire the gamecrafter site to print high quality cards  
-The images must have specific dimensions  
-This lent itself to automation and Python is my current favorite scripting language  
+Since the images must have specific dimensions this lent itself to automation so I created this Python script to convert a text file into an image with the correct dimensions  
 Each image will be compatible with the Jumbo card dimensions for [The Game Crafter](https://www.thegamecrafter.com/make/products/JumboDeck) image assets  
 
 ## Details
@@ -17,10 +16,10 @@ Jumbo cards have the following physical dimensions:
 
 - The .png files are intended to fit the Jumbo cards with image dimensions of 1125px x 1725px  
 - The generated .png has a default top border of 120px and a left border of 100px  
-
-This application looks for *.txt in `inputDirectory` and converts the contents of each into a .png image  
-By default, the images will be written to the directory "images" under `imageDirectory`    
-If `imageDirectory` does not exist, it will be created  
+  
+This application looks for `inputFilePattern` in `inputDirectory` and converts the contents of each text file into a .png image  
+The images will be written to the directory `imageOutputDirectory`  
+If `imageOutputDirectory` does not exist, it will be created  
 `imageWidth` and `imageHeight` are the desired dimensions of the final image  
 `textNumberOfColumns` is used for formatting the title and each line
 
@@ -28,8 +27,8 @@ If `imageDirectory` does not exist, it will be created
 The following variables have been broken out to make it easy to modify:
 ```
 inputDirectory = "./"  
-imageDirectory = "./images/"  
 inputFilePattern = '*.txt'  
+imageOutputDirectory = "./images/"  
 outputFilenamePrefix = ""
   
 textFontSize = 52

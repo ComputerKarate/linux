@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 from PIL import Image, ImageDraw, ImageFont
 import glob
 import os
@@ -12,29 +12,27 @@ import os
 
 # Ideally you will have a directory for your input files instead of the current directory
 inputDirectory = "./"
-imageDirectory = "./images/"
-inputFilePattern = '*.txt'
-outputFilenamePrefix = "" # Holds filename minus the extension
-                          # Image filename will be <filename>.png
+inputFilePattern = '*.txt'          # Handy if you have other files mingled into the directory
+imageOutputDirectory = "./images/"  # This directory will be created if missing
+outputFilenamePrefix = ""
 
-# Text dimensions and X Y
+# Text related variables
 textFontSize = 52
 textFontStyle = "Lato-Medium"
 textOffsetFromTop = 120
 textOffsetFromLeft = 100
+imageWidth = 1125           # Jumbo card width
+imageHeight = 1725          # Jumbo card height
 
 # Card dimensions depending on font size and type
-textNumberOfColumns = 65
-textTitleBias = 5 # Need to push the title over a little further to the right
-                  # Do not remove this variable, just set it to 0 if not needed
+textNumberOfLines = 35
+textNumberOfColumns = 34
+
+# If you choose a font that has a variable pitch, 
+# your title may need some help appearing centered over the list below it
+textTitleBias = 10 + int(textNumberOfColumns / 2)
 
 # Set the text color with the RGB values
-# https://colorspire.com/rgb-color-wheel/
-# Some common values:
-# 255, 255, 255 = White (#FFFFFF)
-# 0, 0, 0       = Black (#000000)
-# 239, 255, 0   = Yellow (#EFFF00)
-# 0, 255, 68    = Green (#00FF44)
 cardTextColor = (0, 0, 0)
 cardBackgroundColor = 'white'
 
@@ -44,38 +42,36 @@ def createFileList():
 
     inputFileList = glob.glob(inputFilePattern, recursive=False)
     for entry in inputFileList:
-        print("Entry: %s" % entry)
-
         # Break out the filename prefix and extension
         outputFilenamePrefix, file_extension = os.path.splitext(entry)
-        print("Filename %s, Extension %s" % (outputFilenamePrefix, file_extension))
         getFileContents(entry)
 
 def getFileContents(filename):
     linecount = 0
     formattedFileContents = []
-    firstRun = True
+    formattedTitle = ""
 
-    print("\tReading %s" % filename)
     filehandle = open(filename, "r")
 
     for value in filehandle:
         if 1 > linecount:
-            value = value.strip()
-            if True == firstRun:
-                value = f"{value:{' '}>{textTitleBias}}"
-                firstRun = False
-            formattedFileContents.append(value.center(textNumberOfColumns, " "))
+            formattedTitle = f"{' ' * textTitleBias}{value.strip()}"
+            formattedFileContents.append(formattedTitle)
+            titleLine = False
         else:
-            formattedFileContents.append(value)
-        linecount = linecount + 1
+            if '\n' == value:
+                # We removed the trailing crlf from value so we add two here
+                formattedFileContents.append('\r\n\r\n')
+            else:
+                formattedFileContents.append(value)
+        linecount += 1
     createImageFile(formattedFileContents)
 
 
 def createImageFile(fileContents):
-    outputFilename = imageDirectory + outputFilenamePrefix + ".png"
+    outputFilename = imageOutputDirectory + outputFilenamePrefix + ".png"
     print("Creating image file: %s" % outputFilename)
-    image = Image.new("RGB", (1125, 1725), cardBackgroundColor)
+    image = Image.new("RGB", (imageWidth, imageHeight), cardBackgroundColor)
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(textFontStyle, size=textFontSize)
 
@@ -89,10 +85,9 @@ if not os.path.isdir(inputDirectory):
     quit()
 else:
     print("%s exists, continuing" % (inputDirectory))
-    if not os.path.isdir(imageDirectory):
-        print("%s does not exist, creating..." % imageDirectory)
-        os.makedirs(imageDirectory)
+    if not os.path.isdir(imageOutputDirectory):
+        print("%s does not exist, creating..." % imageOutputDirectory)
+        os.makedirs(imageOutputDirectory)
     createFileList()
-
 
 
